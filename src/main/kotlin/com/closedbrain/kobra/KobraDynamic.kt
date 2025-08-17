@@ -4,7 +4,7 @@ import com.closedbrain.dynamic.Dynamic
 import com.sun.jna.Pointer
 
 @Dynamic
-value class KobraDynamic(val ptr: Pointer) {
+class KobraDynamic(val ptr: Pointer) {
     operator fun get(key: String): KobraDynamic {
         TODO("implement it you fucking idiot")
     }
