@@ -1,7 +1,7 @@
 package com.closedbrain.kobra
 
 import org.junit.jupiter.api.Test
-import java.util.Random
+import java.util.*
 
 class KobraNestTest {
 
@@ -83,7 +83,95 @@ class KobraNestTest {
 
     @Test
     fun testComplex() {
-        KobraNest().eval("3+4j")!!..primitive<Complex>() == Complex(3.0, 1.0)
-        print(KobraNest().eval("4")!!)
+        assert(KobraNest().eval("3+4j")!!..primitive<Complex>() == Complex(3.0, 4.0))
+    }
+
+    @Test
+    fun testList() {
+        val correctList = listOf(1, 2, 3)
+        val kobraList = KobraNest().eval("[1, 2, 3]")!!..primitive<List<KobraDynamic>>()
+
+        kobraList.forEachIndexed { index, dynamic ->
+            assert(correctList[index] == dynamic..primitive<Int>())
+        }
+
+        assert(correctList.size == kobraList.size)
+    }
+
+    @Test
+    fun testDictItem() {
+        assert(KobraNest().eval("{\"test\": 1}")!!["test"]..primitive<Int>() == 1)
+    }
+
+    @Test
+    fun testDictItemInternalString() {
+        val nest = KobraNest()
+
+        val string = nest.eval("\"test\"")!!
+
+        assert(nest.eval("{\"test\": 1}")!![string]..primitive<Int>() == 1)
+    }
+
+    @Test
+    fun testDictSetItem() {
+        val nest = KobraNest()
+
+        val one = nest.eval("1")!!
+
+        val dict = nest.eval("{\"test\": 0}")!!
+
+        dict["test"] = one
+
+        assert(dict["test"]..primitive<Int>() == 1)
+    }
+
+    @Test
+    fun testDictSetItemInternalString() {
+        val nest = KobraNest()
+
+        val one = nest.eval("1")!!
+
+        val key = nest.eval("\"test\"")!!
+
+        val dict = nest.eval("{\"test\": 0}")!!
+
+        dict[key] = one
+
+        assert(dict[key]..primitive<Int>() == 1)
+    }
+
+    @Test
+    fun testMember() {
+        assert(
+            KobraNest().eval("\"test\"")!!
+                .m("__class__")
+                .m("__name__")..primitive<String>() == "str"
+        )
+    }
+
+    @Test
+    fun testGetListItem() {
+        assert(KobraNest().eval("[0, 1]")!![1]..primitive<Int>() == 1)
+    }
+
+    @Test
+    fun testSetListItem() {
+        val nest = KobraNest()
+        val list = nest.eval("[0, 0]")!!
+
+        val one = nest.eval("1")!!
+
+        list[1] = one
+
+        assert(list[1]..primitive<Int>() == 1)
+    }
+
+    @Test
+    fun invoke() {
+        val nest = KobraNest("import math")
+
+        val four = nest.eval("4")!!
+
+        assert(nest.eval("math")!!.m("sqrt")(four)!!..primitive<Float>() == 2f)
     }
 }

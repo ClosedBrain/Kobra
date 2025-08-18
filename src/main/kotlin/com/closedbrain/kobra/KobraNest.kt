@@ -2,25 +2,26 @@ package com.closedbrain.kobra
 
 import com.sun.jna.Pointer
 import java.io.File
+import java.lang.foreign.MemorySegment
 import java.nio.file.Path
 
 class KobraNest(script: String) {
     constructor() : this("")
 
-    private var globalDict: Pointer?
-    private var localDict: Pointer?
+    private var globalDict: MemorySegment?
+    private var localDict: MemorySegment?
 
     init {
-        if (PythonAPI.INSTANCE.Py_IsInitialized() == 0) {
-            PythonAPI.INSTANCE.Py_Initialize()
+        if (PythonAPI.Py_IsInitialized() == 0) {
+            PythonAPI.Py_Initialize()
         }
 
-        val mainModule = PythonAPI.INSTANCE.PyImport_AddModule("__main__")
-        globalDict = PythonAPI.INSTANCE.PyModule_GetDict(mainModule)
-        localDict = PythonAPI.INSTANCE.PyDict_New()
+        val mainModule = PythonAPI.PyImport_AddModule("__main__")
+        globalDict = PythonAPI.PyModule_GetDict(mainModule)
+        localDict = PythonAPI.PyDict_New()
 
         if (!script.isEmpty()) {
-            PythonAPI.INSTANCE.PyRun_String(
+            PythonAPI.PyRun_String(
                 script,
                 257,
                 globalDict,
@@ -30,7 +31,7 @@ class KobraNest(script: String) {
     }
 
     fun eval(script: String): KobraDynamic? {
-        val resultPtr = PythonAPI.INSTANCE.PyRun_String(
+        val resultPtr = PythonAPI.PyRun_String(
             script, 258, globalDict, localDict
         )
 
@@ -40,7 +41,7 @@ class KobraNest(script: String) {
     }
 
     fun execute(script: String) {
-        PythonAPI.INSTANCE.PyRun_String(
+        PythonAPI.PyRun_String(
             script, 257, globalDict, localDict
         )
     }
